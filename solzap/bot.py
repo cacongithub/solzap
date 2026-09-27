@@ -13,12 +13,12 @@ from solders.pubkey import Pubkey
 from .payments import create_payment_request
 
 BASE58 = r"[1-9A-HJ-NP-Za-km-z]{32,44}"
-RE_WALLET = re.compile(rf"^(?:minha\s+)?carteira\s*[:\-]?\s*({BASE58})$", re.I)
-RE_SHOW_WALLET = re.compile(r"^(?:minha\s+)?carteira\??$", re.I)
+RE_WALLET = re.compile(rf"^(?:(?:minha|my)\s+)?(?:carteira|wallet)\s*[:\-]?\s*({BASE58})$", re.I)
+RE_SHOW_WALLET = re.compile(r"^(?:(?:minha|my)\s+)?(?:carteira|wallet)\??$", re.I)
 RE_SEND = re.compile(
-    r"^(?:enviar|envia|envie|mandar|manda|mande|transferir)\s+"
-    r"(?:us\$|u\$|\$|usd|usdc)?\s*([\d.,]+)\s*(?:d[oó]lar(?:es)?|usdc|usd)?\s+"
-    r"(?:para|pra|pro|p/)\s+(.+)$",
+    r"^(?:enviar|envia|envie|mandar|manda|mande|transferir|send|pay)\s+"
+    r"(?:us\$|u\$|\$|usd|usdc)?\s*([\d.,]+)\s*(?:d[oó]lar(?:es)?|dollars?|usdc|usd)?\s+"
+    r"(?:para|pra|pro|p/|to)\s+(.+)$",
     re.I,
 )
 RE_HELP = re.compile(r"^(?:ajuda|remessa|menu|help|dolar|dólar)\??$", re.I)

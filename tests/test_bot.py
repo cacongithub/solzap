@@ -77,3 +77,10 @@ def test_self_send_only_when_allowed(tmp_path):
     bot.handle(MARIA, f"carteira {Keypair().pubkey()}")
     [r] = bot.handle(MARIA, "enviar 5 para 11 91111-2222")
     assert "/pay/" in r.text
+
+
+def test_english_commands(bot):
+    assert "Remessa" in bot.handle(JOAO, "help")[0].text
+    assert "cadastrada" in bot.handle(MARIA, f"wallet {Keypair().pubkey()}")[0].text
+    [r] = bot.handle(JOAO, "send $12.50 dollars to +55 11 91111-2222")
+    assert "US$ 12,50" in r.text and "/pay/" in r.text
