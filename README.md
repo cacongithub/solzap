@@ -83,7 +83,6 @@ else:
 ## Run it locally
 
 ```bash
-cd solzap
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m pytest -q                      # 16 tests
 
@@ -93,7 +92,7 @@ SOLZAP_NETWORK=localnet .venv/bin/python scripts/demo.py 25        # one payment
 SOLZAP_NETWORK=localnet .venv/bin/python scripts/simulator.py      # http://localhost:5055
 ```
 
-On devnet, set `HELIUS_API_KEY` in `solzap/.env` (optional, public RPC works too) and use `SOLZAP_NETWORK=devnet`.
+On devnet, set `HELIUS_API_KEY` in `.env` (optional, public RPC works too) and use `SOLZAP_NETWORK=devnet`.
 
 ## Layout
 
@@ -120,4 +119,4 @@ Clériston Capistrano, solo founder from Brazil. Built [atendente.online](https:
 
 ## License
 
-Apache-2.0
+Apache-2.0 (see [LICENSE](LICENSE)). `solzap/static/web3.iife.min.js` is the unmodified build of [@solana/web3.js](https://github.com/solana-labs/solana-web3.js) (MIT), vendored so the pay page works under strict CSP.
