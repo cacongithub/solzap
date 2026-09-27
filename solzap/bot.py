@@ -81,8 +81,10 @@ HELP = (
 
 
 class SolzapBot:
-    def __init__(self, store, mint, base_url, max_amount=Decimal("1000"), on_payment_created=None):
+    def __init__(self, store, mint, base_url, max_amount=Decimal("1000"), on_payment_created=None,
+                 allow_self_send=False):
         self.store = store
+        self.allow_self_send = allow_self_send  # só para demo em rede de teste
         self.mint = str(mint)
         self.base_url = base_url.rstrip("/")
         self.max_amount = Decimal(max_amount)
@@ -124,7 +126,7 @@ class SolzapBot:
         recipient = normalize_phone(recipient_text)
         if len(recipient) < 12:
             return [Reply(sender, "Não entendi o número de quem recebe. Use com DDD, ex.: +55 11 91234-5678")]
-        if recipient == sender:
+        if recipient == sender and not self.allow_self_send:
             return [Reply(sender, "Você não pode enviar para o seu próprio número.")]
         address = self.store.get_wallet(recipient)
         if not address:

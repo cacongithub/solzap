@@ -35,8 +35,17 @@ def _qr_svg(data):
     return Markup(buf.getvalue().decode())
 
 
+def _external_url(endpoint, **values):
+    """URL absoluta respeitando o proxy (Railway, Heroku, túneis): quem termina o TLS
+    avisa em X-Forwarded-Proto; sem isso sairia http:// numa página https."""
+    url = url_for(endpoint, _external=True, **values)
+    if request.headers.get("X-Forwarded-Proto", "").split(",")[0].strip() == "https" and url.startswith("http://"):
+        url = "https://" + url[len("http://"):]
+    return url
+
+
 def make_blueprint(store, rpc, net, icon_url="", on_submitted=None):
-    bp = Blueprint("solzap", __name__)
+    bp = Blueprint("solzap", __name__, static_folder="static", static_url_path="/solzap-static")
     decimals = lru_cache(maxsize=8)(lambda mint: mint_decimals(rpc, mint))
 
     def payment_or_404(pid):
@@ -48,9 +57,9 @@ def make_blueprint(store, rpc, net, icon_url="", on_submitted=None):
     @bp.get("/pay/<pid>")
     def pay_page(pid):
         row = payment_or_404(pid)
-        page_url = url_for("solzap.pay_page", pid=pid, _external=True)
-        tx_url = url_for("solzap.tx_request", pid=pid, _external=True)
-        origin = request.host_url.rstrip("/")
+        page_url = _external_url("solzap.pay_page", pid=pid)
+        tx_url = _external_url("solzap.tx_request", pid=pid)  # absoluta: vai no QR, a carteira chama de fora
+        origin = page_url.split("/pay/")[0]
         return render_template_string(
             PAGE,
             row=row,
@@ -61,7 +70,7 @@ def make_blueprint(store, rpc, net, icon_url="", on_submitted=None):
             qr=_qr_svg(f"solana:{tx_url}"),
             phantom=f"https://phantom.app/ul/browse/{quote(page_url, safe='')}?ref={quote(origin, safe='')}",
             solflare=f"https://solflare.com/ul/v1/browse/{quote(page_url, safe='')}?ref={quote(origin, safe='')}",
-            tx_url=tx_url,
+            tx_url=url_for("solzap.tx_request", pid=pid),  # relativa: a página chama no mesmo protocolo
             submit_url=url_for("solzap.submit", pid=pid),
             status_url=url_for("solzap.pay_status", pid=pid),
             explorer=explorer_tx_url(row["signature"], net["name"]) if row["signature"] else "",
@@ -149,7 +158,8 @@ PAGE = """<!doctype html>
   .ok{border-color:var(--accent);color:var(--accent)} .err{color:var(--warn)}
   a.link{color:var(--accent)}
 </style></head><body>
-<main class="card">
+<main class="card" id="solzap" data-status="{{ row.status }}" data-tx-url="{{ tx_url }}"
+      data-submit-url="{{ submit_url }}" data-status-url="{{ status_url }}">
   <span class="badge">Solana · {{ network }}</span>
   <p class="muted" style="margin:16px 0 0">Enviar para {{ recipient }}</p>
   <div class="amount">US$ {{ amount }}</div>
@@ -170,49 +180,7 @@ PAGE = """<!doctype html>
     {% elif row.status == 'expired' %}<span class="err">Esta cobrança expirou. Peça um novo link no WhatsApp.</span>{% endif %}
   </div>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.98.0/lib/index.iife.min.js"></script>
-<script>
-const provider = window.phantom?.solana || window.solflare || window.solana;
-const $ = id => document.getElementById(id);
-function show(html, cls){ const m=$('msg'); m.hidden=false; m.innerHTML='<span class="'+(cls||'')+'">'+html+'</span>'; }
-
-async function poll(){
-  const r = await fetch({{ status_url|tojson }}, {headers:{'ngrok-skip-browser-warning':'1'}}).then(r=>r.json()).catch(()=>null);
-  if(r && r.status==='paid'){ $('pending').hidden=true; show('✅ Pagamento confirmado. <a class="link" href="'+r.explorer+'">Ver na blockchain</a>','ok'); return; }
-  if(r && r.status==='expired'){ $('pending').hidden=true; show('Esta cobrança expirou. Peça um novo link no WhatsApp.','err'); return; }
-  setTimeout(poll, 2500);
-}
-
-async function pay(){
-  $('pay').disabled = true;
-  try{
-    const {publicKey} = await provider.connect();
-    const res = await fetch({{ tx_url|tojson }}, {method:'POST', headers:{'Content-Type':'application/json','ngrok-skip-browser-warning':'1'},
-                                                  body: JSON.stringify({account: publicKey.toString()})});
-    const body = await res.json();
-    if(!res.ok) throw new Error(body.error || 'erro ao montar a transação');
-    const bytes = Uint8Array.from(atob(body.transaction), c => c.charCodeAt(0));
-    const tx = solanaWeb3.Transaction.from(bytes);
-    show('Assinando…');
-    if(provider.signTransaction){
-      const signed = await provider.signTransaction(tx);
-      const raw = btoa(String.fromCharCode(...signed.serialize()));
-      show('Enviando…');
-      const sub = await fetch({{ submit_url|tojson }}, {method:'POST', headers:{'Content-Type':'application/json','ngrok-skip-browser-warning':'1'},
-                                                        body: JSON.stringify({transaction: raw})});
-      const sb = await sub.json();
-      if(!sub.ok) throw new Error(sb.error || 'erro ao enviar');
-    } else {
-      await provider.signAndSendTransaction(tx);
-    }
-    show('Enviado. Aguardando confirmação na blockchain…');
-  }catch(e){ show('Não foi possível pagar: '+(e.message||e),'err'); $('pay').disabled=false; }
-}
-
-if({{ (row.status == 'pending')|tojson }}){
-  if(provider){ $('open').hidden=true; $('pay').hidden=false; $('pay').onclick=pay; }
-  poll();
-}
-</script>
+<script src="{{ url_for('solzap.static', filename='web3.iife.min.js') }}"></script>
+<script src="{{ url_for('solzap.static', filename='pay.js') }}"></script>
 </body></html>
 """

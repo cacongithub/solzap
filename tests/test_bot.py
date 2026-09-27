@@ -70,3 +70,10 @@ def test_replies_go_to_original_wa_id(bot):
     assert r.to == "5511987654321"
     assert bot.store.wa_id(r.to) == "551187654321"
     assert bot.store.wa_id("5511000000000") == "5511000000000"  # nunca escreveu
+
+
+def test_self_send_only_when_allowed(tmp_path):
+    bot = SolzapBot(Store(str(tmp_path / "s.db")), MINT, "https://bot.test", allow_self_send=True)
+    bot.handle(MARIA, f"carteira {Keypair().pubkey()}")
+    [r] = bot.handle(MARIA, "enviar 5 para 11 91111-2222")
+    assert "/pay/" in r.text
