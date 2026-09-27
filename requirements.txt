@@ -1,0 +1,6 @@
+solders>=0.29
+solana>=0.40
+requests>=2.32
+qrcode>=7.4
+pytest>=8
+flask>=3.0
