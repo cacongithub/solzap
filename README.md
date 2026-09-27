@@ -6,8 +6,8 @@
 
 ## Why
 
-- **WhatsApp is where money conversations already happen in Brazil.** Around 150M+ people use it; businesses already sell, invoice and support customers there.
-- **Brazilians abroad send money home through slow, expensive rails.** There are an estimated 4–5M Brazilians living abroad.
+- **WhatsApp is where money conversations already happen in Brazil.** Nearly 150M people use it ([Statista](https://www.statista.com/topics/7731/whatsapp-in-brazil/)); businesses already sell, invoice and support customers there.
+- **Brazilians abroad send money home through slow, expensive rails.** About 4.9M Brazilians live abroad ([Itamaraty, 2023](https://www.gov.br/mre/pt-br/assuntos/portal-consular/arquivos/comunidade-brasileira-no-exterior-estatisticas-2023)) and Brazil received about US$4.2B in personal transfers in 2025 ([Central Bank data](https://www.remessaonline.com.br/blog/remessas-internacionais-brasil-dados/)).
 - **Stablecoins on Solana settle in seconds for a fraction of a cent.** The missing piece is the last mile: meeting people inside the app they already use, without asking them to learn crypto first.
 
 SolZap is that last mile, packaged as a kit so any WhatsApp bot (not just ours) can add it.
