@@ -12,6 +12,8 @@
 
 SolZap is that last mile, packaged as a kit so any WhatsApp bot (not just ours) can add it.
 
+What makes it different from other remittance apps: **nothing to install** (it lives inside WhatsApp, on the official Meta Cloud API), **non-custodial** (the wallet only signs; we never hold keys), and **reusable** (a kit for any bot, not a single app).
+
 ## Demo
 
 | | |
